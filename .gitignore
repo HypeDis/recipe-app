@@ -1,2 +1,4 @@
 config
 node_modules
+playground
+./config/postgres.js

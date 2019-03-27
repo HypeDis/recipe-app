@@ -3,7 +3,7 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const db = require('./dB/queries');
+const db = require('./dB/postgres');
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
@@ -14,12 +14,9 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/users', db.getUsers);
+const Users = require('./routing/api/Users');
 
-app.get('/users/:id', db.getUserByID);
-app.post('/users', db.createUser);
-app.put('/users/:id', db.updateUser);
-app.delete('/users/:id', db.deleteUser);
+app.use('/users', Users);
 
 app.listen(PORT, () => {
   console.log(`app running on ${PORT}`);
