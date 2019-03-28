@@ -7,6 +7,4 @@ const pool = new Pool({
   connectionString: elephantURI,
 });
 
-module.exports = {
-  pool,
-};
+module.exports = pool;
