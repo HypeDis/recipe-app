@@ -9,8 +9,6 @@ const Recipes = require('./routing/api/recipesRoutes');
 
 const PORT = process.env.PORT || 3000;
 
-// const db = require('./dB/postgresPool');
-
 // middleware
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));

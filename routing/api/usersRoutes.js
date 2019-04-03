@@ -192,8 +192,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// @route: GET to /api/users/currentuser
-// @desc: access user info using jwt auth
+// @route: GET to /api/users/current
+// @desc: access user info using jwt auth token
 // @access: private
 router.get(
   '/current',
@@ -206,4 +206,5 @@ router.get(
     });
   }
 );
+
 module.exports = router;
