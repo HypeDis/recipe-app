@@ -1,0 +1,49 @@
+users routes:
+
+  @route: GET to /api/users/
+  @desc: get all users 
+  @access: public
+
+  @route: GET to /api/users/:user_id
+  @desc: get a user by id
+  @access: public
+
+  @route: POST to /api/users/register
+  @desc: register a user
+  @access: public
+
+  @route: POST to /api/users/login, returns jwt token
+  @desc: login as a user
+  @access: public
+
+  @route: GET to api/users/current
+  @desc: return current user data
+  @access: private
+
+recipes routes:
+  
+  @route: GET to /api/recipes/
+  @desc: get all recipes
+  @access: test
+
+  @route: GET to /api/recipes/current
+  @desc: get all recipes of current user
+  @access: private
+  
+  @route: GET to /api/recipes/current/:recipe_id
+  @desc: get a recipe by id
+  @access: private
+
+  @route: POST to /api/recipes/current/
+  @desc: create a recipe
+  @access: private
+  
+  @route: POST to /api/recipes/current/:recipe_id
+  @desc: update a recipe
+  @access: private  
+
+   
+  //filtered results routes. will add later
+  @route: GET to /api/recipes/current/sort/:sort_query
+  @desc: get a recipe by id
+  @access: private

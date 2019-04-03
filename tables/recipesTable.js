@@ -12,4 +12,5 @@ CREATE TABLE recipes\n
   created_at TIMESTAMPTZ NOT NULL
 );`;
 
+
 module.exports = createRecipesTable;
