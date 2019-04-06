@@ -45,7 +45,7 @@ module.exports = registerInputValidation = data => {
     errors.password = 'Password must be between 6 and 32 characters long';
   }
 
-  if (Object.keys(errors).length > 0) {
+  if (!isEmpty(errors)) {
     isValid = false;
   }
 

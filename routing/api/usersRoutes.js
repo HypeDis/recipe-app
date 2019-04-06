@@ -1,4 +1,3 @@
-// const express = require('express');
 const bcrypt = require('bcryptjs');
 const Router = require('express-promise-router');
 const jwt = require('jsonwebtoken');
@@ -11,12 +10,16 @@ const db = require('../../dB/postgresPool');
 
 const queries = require('./../../dB/postgresQueries');
 
+// validation
 const registerInputValidation = require('./../../validation/registerInputValidation');
 const loginInputValidation = require('./../../validation/loginInputValidation');
+const updateUserValidation = require('./../../validation/updateUserValidation');
 
-// @route: GET to /api/users/
-// @desc: get all users
-// @access: public
+/**
+ * @Route GET to /api/users/
+ * @Desc get all users
+ * @Access public/test
+ */
 
 router.get('/', (req, res) => {
   db.query(queries.selectAllUsers, (err, result) => {
@@ -27,9 +30,11 @@ router.get('/', (req, res) => {
   });
 });
 
-// @route: GET to /api/users/:user_id
-// @desc: get a user by id
-// @access: public
+/**
+ * @Route GET to /api/users/:user_id
+ * @Desc get a user by id
+ * @Access public
+ */
 
 router.get('/userid/:user_id', (req, res) => {
   const user_id = req.params.user_id;
@@ -42,20 +47,11 @@ router.get('/userid/:user_id', (req, res) => {
   });
 });
 
-// router.get('/:user_id', async (req, res) => {
-//   const user_id = parseInt(req.params.user_id);
-//   //validate user_id
-//   try {
-//     const user = await db.query(queries.selectUserById, [user_id]);
-//     res.status(200).json(result.rows);
-//   } catch (err) {
-//     res.status(400).json({ err });
-//   }
-// });
-
-// @route: POST to /api/users/register
-// @desc: register a user
-// @access: public
+/**
+ * @Route POST to /api/users/register
+ * @Desc register a user
+ * @Access public
+ */
 
 router.post('/register', async (req, res) => {
   // validate inputs
@@ -135,9 +131,11 @@ router.post('/register', async (req, res) => {
   });
 });
 
-// @route: GET to /api/users/login
-// @desc: log in to account / return jwt token
-// @access: private
+/**
+ * @Route GET to /api/users/login
+ * @Desc log in to account / return jwt token
+ * @Access private
+ */
 
 router.post('/login', async (req, res) => {
   let { errors, isValid } = loginInputValidation(req.body);
@@ -192,18 +190,68 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// @route: GET to /api/users/current
-// @desc: access user info using jwt auth token
-// @access: private
+/**
+ * @route GET to /api/users/current
+ * @desc access user info using jwt auth token
+ * @access private
+ */
+
 router.get(
-  '/current',
+  '/currentuser',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
     res.status(200).json({
-      id: req.user.user_id,
+      user_id: req.user.user_id,
       user_name: req.user.user_name,
       email: req.user.email,
     });
+  }
+);
+
+router.delete(
+  '/removeuser',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const user_id = req.user.user_id;
+    db.query(queries.deleteUserById, [user_id], (err, result) => {
+      if (err) {
+        throw { err };
+      }
+      res.status(200).json({ result });
+    });
+  }
+);
+
+/**
+ * @Route PUT to /api/users/currentuser
+ * @Desc update user information
+ * @Access private
+ */
+
+// check which inputs have changed
+// validate new password
+// newPassword
+// confirmNewPassword
+router.put(
+  '/currentuser',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    // validate user inputs
+    let { errors, isValid } = updateUserValidation(req.body);
+    if (!isValid) {
+      return res.status(400).json({ errors });
+    } else {
+      res.status(200).json({ success: true });
+    }
+    try {
+      const user = await db.query(queries.selectUserByEmail, [req.user.email]);
+    } catch (err) {
+      throw err;
+    }
+    // grab user data from db
+    // compare password hashes
+    // if newpassword === currentpassword throw error
+    // update user inputs
   }
 );
 
