@@ -3,10 +3,6 @@ const bodyparser = require('body-parser');
 const app = express();
 const passport = require('passport');
 
-// routes
-const Users = require('./routing/api/usersRoutes');
-const Recipes = require('./routing/api/recipesRoutes');
-
 const PORT = process.env.PORT || 3000;
 
 // middleware
@@ -17,6 +13,9 @@ app.use(passport.initialize());
 // load passport config
 require('./config/passportConfig')(passport);
 
+// routes
+const Users = require('./routing/api/usersRoutes');
+const Recipes = require('./routing/api/recipesRoutes');
 app.use('/api/users', Users);
 app.use('/api/recipes', Recipes);
 

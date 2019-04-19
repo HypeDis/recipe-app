@@ -9,8 +9,11 @@ const queries = require('./../dB/postgresQueries');
 const opts = {};
 
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+// opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('Bearer');
+
 opts.secretOrKey = key;
 
+// change to sequelize
 module.exports = passport => {
   passport.use(
     new JwtStrategy(opts, (jwt_payload, done) => {
