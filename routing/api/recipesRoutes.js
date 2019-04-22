@@ -1,8 +1,7 @@
 const Router = require('express-promise-router');
 const passport = require('passport');
 
-const db = require('../../dB/postgresPool');
-const queries = require('./../../dB/postgresQueries');
+//add sequelize Recipe model
 
 const router = new Router();
 

@@ -36,18 +36,18 @@ module.exports = function(data) {
     data.newPassword = '';
   }
 
-  if (validator.isEmpty(data.newPassword)) {
-    errors.newPassword = 'please enter a new password';
-  }
+  // if (validator.isEmpty(data.newPassword)) {
+  //   errors.newPassword = 'please enter a new password';
+  // }
+  if (data.newPassword.length || data.newPassword2.length) {
+    if (!validator.isLength(data.newPassword, { min: 6, max: 32 })) {
+      errors.newPassword = 'new password must be between 6 and 32 characters';
+    }
 
-  if (!validator.isLength(data.newPassword, { min: 6, max: 32 })) {
-    errors.newPassword = 'new password must be between 6 and 32 characters';
-  }
-
-  //confirmNewPassword
-
-  if (data.newPassword2 !== data.newPassword) {
-    errors.newPassword2 = 'passwords do not match';
+    //confirmNewPassword
+    if (data.newPassword2 !== data.newPassword) {
+      errors.newPassword2 = 'passwords do not match';
+    }
   }
 
   if (!isEmpty(errors)) {

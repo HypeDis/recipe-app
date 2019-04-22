@@ -3,7 +3,7 @@ const Router = require('express-promise-router');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const secretOrKey = require('./../../config/keys').secretOrKey;
-
+const isEmpty = require('./../../validation/is-empty');
 const router = new Router();
 
 // validation
@@ -136,18 +136,14 @@ router.post('/login', async (req, res) => {
 
   //check if email exists
 
-  const users = await User.findAll({ where: { email } }).catch(err =>
+  const user = await User.findOne({ where: { email } }).catch(err =>
     console.log(err)
   );
 
-  if (!users.length) {
+  if (!user) {
     errors.email = 'User not found';
     return res.status(400).json({ errors });
   }
-
-  const user = users[0].dataValues;
-
-  console.log('user', user);
 
   //check if password matches
 
@@ -208,12 +204,11 @@ router.delete(
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
     const user_id = req.user.user_id;
-    db.query(queries.deleteUserById, [user_id], (err, result) => {
-      if (err) {
-        throw { err };
-      }
-      res.status(200).json({ result });
-    });
+    User.destroy({ where: { user_id } })
+      .then(() =>
+        res.status(200).json({ success: true, message: 'user removed' })
+      )
+      .catch(err => console.log(err));
   }
 );
 
@@ -223,7 +218,6 @@ router.delete(
  * @Access private
  */
 
-// add updated_at information
 router.put(
   '/currentuser',
   passport.authenticate('jwt', { session: false }),
@@ -233,13 +227,10 @@ router.put(
     if (!isValid) {
       return res.status(400).json({ errors });
     }
-    let user;
-    try {
-      user = (await db.query(queries.selectUserByEmail, [req.user.email]))
-        .rows[0];
-    } catch (err) {
-      throw err;
-    }
+    const user = await User.findOne({
+      where: { user_id: req.user.user_id },
+    }).catch(err => console.log(err));
+    // const user = { ...req.body };
     // compare pw hashes
     const isMatch = await bcrypt
       .compare(req.body.password, user.password)
@@ -251,19 +242,64 @@ router.put(
       errors.password = 'Invalid password';
       return res.status(400).json({ errors });
     }
-    // checks that new pw is different after validating current pw
-    if (isMatch && req.body.newPassword === req.body.password) {
-      errors.password = 'New password must be different from current password';
-      return res.status(400).json({ errors });
+
+    let newHash;
+    // check if password is being updated
+    if (req.body.newPassword.length) {
+      // checks that new pw is different after validating current pw
+      if (isMatch && req.body.newPassword === req.body.password) {
+        errors.password =
+          'New password must be different from current password';
+        return res.status(400).json({ errors });
+      }
+      // create new pw hash
+      newHash = await bcrypt
+        .hash(req.body.newPassword, await bcrypt.genSalt())
+        .catch(err => {
+          throw err;
+        });
     }
-    // create new pw hash
-    const newHash = await bcrypt
-      .hash(req.body.newPassword, await bcrypt.genSalt())
-      .catch(err => {
-        throw err;
-      });
+
+    const updatedUser = populateUpdatedUser(user, req.body, newHash);
+
     //insert updated data into table
+    if (!isEmpty(updatedUser)) {
+      User.update(
+        { ...updatedUser },
+        {
+          where: {
+            user_id: req.user.user_id,
+          },
+          returning: true,
+        }
+      )
+        .then(result => {
+          const returnedUser = result[1][0];
+          res.status(200).json(returnedUser);
+        })
+        .catch(err => console.log(err));
+    } else {
+      res.status(200).json({ message: 'No changes made' });
+    }
   }
 );
+
+const populateUpdatedUser = (currentData, newData, newPassword) => {
+  const deltaUser = {};
+  if (currentData.user_name !== newData.user_name) {
+    deltaUser.user_name = newData.user_name;
+  }
+  if (currentData.name !== newData.name) {
+    deltaUser.name = newData.name;
+  }
+  if (newPassword) {
+    deltaUser.password = newPassword;
+  }
+  if (!isEmpty(deltaUser)) {
+    const updated_at = Date.now();
+    deltaUser.updated_at = updated_at;
+  }
+  return deltaUser;
+};
 
 module.exports = router;
